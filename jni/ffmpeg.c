@@ -500,11 +500,13 @@ typedef struct OptionsContext {
 
 static void reset_options(OptionsContext *o, int is_input)
 {
+LOGD( "reset_options(): init" );
     const OptionDef *po = options;
     OptionsContext bak= *o;
 
     /* all OPT_SPEC and OPT_STRING can be freed in generic way */
     while (po->name) {
+LOGD( "reset_options(): po->name='%s'", po->name );
         void *dst = (uint8_t*)o + po->u.off;
 
         if (po->flags & OPT_SPEC) {
@@ -522,12 +524,13 @@ static void reset_options(OptionsContext *o, int is_input)
         po++;
     }
 
-
+LOGD( "reset_options(): MAPS", po->name );
     av_freep(&o->stream_maps);
     av_freep(&o->audio_channel_maps);
     av_freep(&o->meta_data_maps);
     av_freep(&o->streamid_map);
 
+LOGD( "reset_options(): memset() OptionsContext", po->name );
     memset(o, 0, sizeof(*o));
 
     if(is_input) o->recording_time = bak.recording_time;
@@ -536,8 +539,11 @@ static void reset_options(OptionsContext *o, int is_input)
     o->limit_filesize = UINT64_MAX;
     o->chapters_input_file = INT_MAX;
 
+LOGD( "reset_options(): calling uninit_opts()", po->name );
     uninit_opts();
+LOGD( "reset_options(): calling init_opts()", po->name );
     init_opts();
+LOGD( "reset_options(): finished", po->name );
 }
 
 static int alloc_buffer(AVCodecContext *s, InputStream *ist, FrameBuffer **pbuf)
@@ -885,7 +891,7 @@ static const AVIOInterruptCB int_cb = { decode_interrupt_cb, NULL };
 
 void /*av_noreturn*/ exit_program(int ret)
 {
-	LOGD( "exit_program(%d) called!", ret );
+LOGD( "exit_program(%d) called!", ret );
 
     int i;
 
@@ -896,6 +902,7 @@ void /*av_noreturn*/ exit_program(int ret)
             avio_close(s->pb);
         avformat_free_context(s);
         av_dict_free(&output_files[i].opts);
+		LOGD( "1 - Close File (%d) called!", i );
     }
     for (i = 0; i < nb_output_streams; i++) {
         AVBitStreamFilterContext *bsfc = output_streams[i].bitstream_filters;
@@ -912,44 +919,54 @@ void /*av_noreturn*/ exit_program(int ret)
                 av_freep(&frame->extended_data);
             av_freep(&frame);
         }
+		LOGD( "2 - Close File (%d) called!", i );
     }
     for (i = 0; i < nb_input_files; i++) {
         avformat_close_input(&input_files[i].ctx);
+		LOGD( "3 - Close File (%d) called!", i );
     }
     for (i = 0; i < nb_input_streams; i++) {
         av_freep(&input_streams[i].decoded_frame);
         av_freep(&input_streams[i].filtered_frame);
         av_dict_free(&input_streams[i].opts);
         free_buffer_pool(&input_streams[i]);
+		LOGD( "4 - Close File (%d) called!", i );
     }
-
+	LOGD( "4.1 - Close called!");
     if (vstats_file)
         fclose(vstats_file);
-    av_free(vstats_filename);
-
+   	LOGD( "4.2 - Close called!");
+	av_free(vstats_filename);
+	LOGD( "5 - Close called!");
     av_freep(&input_streams);
+	LOGD( "5.1 - Close called!");
     av_freep(&input_files);
+	LOGD( "5.2 - Close called!");
     av_freep(&output_streams);
+	LOGD( "5.3 - Close called!");
     av_freep(&output_files);
-
+	LOGD( "6 - Close called!");
     uninit_opts();
+	LOGD( "6.1 - Close called!");
     av_free(audio_buf);
+	LOGD( "6.2 - Close called!");
     allocated_audio_buf_size = 0;
-
+	LOGD( "7 - Close called!");
 #if CONFIG_AVFILTER
     avfilter_uninit();
 #endif
+	LOGD( "7.1 - Close called!");
     avformat_network_deinit();
-
-    av_freep(&input_tmp);
-
+	LOGD( "8 - Close called!");
+	av_freep(&input_tmp);
+	LOGD( "9 - Close called!");
     if (received_sigterm) {
         av_log(NULL, AV_LOG_INFO, "Received signal %d: terminating.\n",
                (int) received_sigterm);
         //exit(255);
         ret = 255;
     }
-
+	LOGD( "10 - Close File called!");
     //exit(ret); /* not all OS-es handle main() return value */
     pthread_exit( &ret );
 }
@@ -5170,7 +5187,7 @@ static const OptionDef options[] = {
     { NULL, },
 };
 
-int main(int argc, char **argv)
+int ffmpeg_main(int argc, char **argv)
 {
 LOGD( "CALL: main(argc=%d)", argc );
     int i;

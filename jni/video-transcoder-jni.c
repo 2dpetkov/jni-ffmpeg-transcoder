@@ -9,7 +9,7 @@
 static pthread_key_t key;
 static pthread_once_t key_once = PTHREAD_ONCE_INIT;
 
-int main( int argc, char** argv );
+int ffmpeg_main( int argc, char** argv );
 
 void log_callback_help(void* ptr, int level, const char* fmt, va_list vl)
 {
@@ -66,7 +66,7 @@ void* worker_thread_run( void* _args )
 	struct Args* args = (struct Args*)_args;
 	LOGD( "Calling main()" );
 
-	int ret = main( args->argc, args->argv );
+	int ret = ffmpeg_main( args->argc, args->argv );
 	
 	LOGI("main() finished");
 	pthread_exit(&ret);
@@ -76,8 +76,17 @@ int ffmpeg( JNIEnv* env, jobject this, jobjectArray args )
 {
 	//handle and initiante ffmpeg's main arguments
 	int i = 0;
+
 	int argc = 0;
 	char **argv = NULL;
+
+	int ret;
+	int* pret;
+
+	struct Args _args;
+	pthread_t worker_thread;
+
+	pthread_attr_t attr;
 
 	if( args != NULL )
 	{
@@ -91,11 +100,14 @@ int ffmpeg( JNIEnv* env, jobject this, jobjectArray args )
 		}
 	}
 
-	struct Args _args = {argc, argv};
-	pthread_t worker_thread;
+	_args.argc = argc;
+	_args.argv = argv;
+
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate( &attr, PTHREAD_CREATE_JOINABLE );
 
 	LOGD("Starting worker thread");
-	int ret = pthread_create( &worker_thread, NULL, worker_thread_run, (void*)&_args );
+	ret = pthread_create( &worker_thread, &attr, worker_thread_run, (void*)&_args );
 	if( ret )
 	{
 		LOGE( "Error starting worker thread: %d", ret);
@@ -104,11 +116,22 @@ int ffmpeg( JNIEnv* env, jobject this, jobjectArray args )
 
 	LOGD("Worker thread started");
 
-	int* pret;
 	pthread_join( worker_thread, (void**)&pret);
-	LOGD("Worker thread finished: %d", *pret);
+	pthread_attr_destroy(&attr);
 
-	return *pret;
+	ret = *pret;
+	LOGD("Worker thread finished: %d", ret);
+
+	//release args
+	for( i=0; i<argc; i++ )
+	{
+		LOGD( "Releasing argv[%d] = %s", i, argv[i] );
+		jstring str = (jstring)(*env)->GetObjectArrayElement(env, args, i);
+		(*env)->ReleaseStringUTFChars(env, str, argv[i]);
+	}
+
+	LOGD( "Returning code %d", ret );
+	return ret;
 }
 
 JNIEXPORT
@@ -116,7 +139,12 @@ int
 JNICALL
 Java_com_lancelotmobile_ane_ffmpeg_FFmpegFunction_ffmpeg( JNIEnv* env, jobject this, jobjectArray args )
 {
-	return ffmpeg( env, this, args );
+	int ret;
+
+	ret = ffmpeg( env, this, args );
+	LOGD( "ffmpeg() finished with code %d", ret );
+
+	return ret;
 }
 
 JNIEXPORT
@@ -124,7 +152,12 @@ int
 JNICALL
 Java_com_example_videotranscoder_VideoTranscoder_ffmpeg( JNIEnv* env, jobject this, jobjectArray args )
 {
-	return ffmpeg( env, this, args );
+	int ret;
+
+	ret = ffmpeg( env, this, args );
+	LOGD( "ffmpeg() finished with code %d", ret );
+
+	return ret;
 }
 
 JNIEXPORT
@@ -132,6 +165,11 @@ int
 JNICALL
 Java_com_example_videotranscoder_TranscoderThread_ffmpeg( JNIEnv* env, jobject this, jobjectArray args )
 {
-	return ffmpeg( env, this, args );
+	int ret;
+
+	ret = ffmpeg( env, this, args );
+	LOGD( "ffmpeg() finished with code %d", ret );
+
+	return ret;
 }
 

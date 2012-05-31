@@ -13,11 +13,13 @@ public class TranscoderThread extends Thread {
 		
 		//String sInAudioFile = sSDCardDir + "/_devtests/in_audio.wav";
 		//String sInAudioFile = sSDCardDir + "/_devtests/in_audio_old.wav";
-		String sInAudioFile = sSDCardDir + "/_devtests/roh1.mp3";
+		//String sInAudioFile = sSDCardDir + "/_devtests/roh1.mp3";
+		String sInAudioFile = sSDCardDir + "/_devtests/a_1.mp3";
 		
 		//String sInVideoFile = sSDCardDir + "/_devtests/in_video.avi";
 		//String sInVideoFile = sSDCardDir + "/_devtests/in_video.mp4";
-		String sInVideoFile = sSDCardDir + "/_devtests/video02.mp4";
+		//String sInVideoFile = sSDCardDir + "/_devtests/video02.mp4";
+		String sInVideoFile = sSDCardDir + "/_devtests/v_1.mp4";
 		
 		//String sOutVideoFile = sSDCardDir + "/_devtests/out_video.flv";
 		String sOutVideoFile = sSDCardDir + "/_devtests/out_video.mp4";

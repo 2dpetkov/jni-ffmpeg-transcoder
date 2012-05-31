@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NDK=~/dev/android/android-ndk-r7b;
+NDK=~/dev/android/android-ndk-r7b_;
 PLATFORM=$NDK/platforms/android-8/arch-arm/;
 PREBUILT=$NDK/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86;
 
@@ -81,13 +81,6 @@ function build_one
 	$PREBUILT/bin/arm-linux-androideabi-ld -rpath-link=$PLATFORM/usr/lib -L$PLATFORM/usr/lib  -soname libffmpeg.so -shared -nostdlib  -z,noexecstack -Bsymbolic --whole-archive --no-undefined -o $PREFIX/libffmpeg.so libavcodec/libavcodec.a libavformat/libavformat.a libavutil/libavutil.a libswscale/libswscale.a libswresample/libswresample.a libpostproc/libpostproc.a libmp3lame/libmp3lame.a libx264/libx264.a libfaac/libfaac.a libavfilter/libavfilter.a libavdevice/libavdevice.a -lc -lm -lz -ldl -llog  --warn-once  --dynamic-linker=/system/bin/linker $PREBUILT/lib/gcc/arm-linux-androideabi/4.4.3/libgcc.a;
 };
 
-#arm v6
-#CPU=armv6
-#OPTIMIZE_CFLAGS="-marm -march=$CPU"
-#PREFIX=./android/$CPU
-#ADDITIONAL_CONFIGURE_FLAG=
-#build_one
-
 #arm v7vfpv3
 #CPU=armv7-a
 #OPTIMIZE_CFLAGS="-mfloat-abi=softfp -mfpu=vfpv3-d16 -marm -march=$CPU "
@@ -105,11 +98,18 @@ function build_one
 #arm v7n
 #CPU=armv7-a
 #OPTIMIZE_CFLAGS="-mfloat-abi=softfp -mfpu=neon -marm -march=$CPU -mtune=cortex-a8"
-#PREFIX=./android/$CPU
+#PREFIX=./android/$CPU-neon
 #ADDITIONAL_CONFIGURE_FLAG=--enable-neon
 #build_one
 
-##arm v6+vfp
+#arm v7-a
+CPU=armv7-a
+OPTIMIZE_CFLAGS="-marm -march=$CPU"
+PREFIX=./android/$CPU
+ADDITIONAL_CONFIGURE_FLAG=
+build_one
+
+#arm v6+vfp
 #CPU=armv6
 #OPTIMIZE_CFLAGS="-DCMP_HAVE_VFP -mfloat-abi=softfp -mfpu=vfp -marm -march=$CPU"
 #PREFIX=./android/${CPU}_vfp
@@ -117,11 +117,11 @@ function build_one
 #build_one
 
 #arm v6
-CPU=armv6
-OPTIMIZE_CFLAGS="-marm -march=$CPU"
-PREFIX=./android/${CPU}
-ADDITIONAL_CONFIGURE_FLAG=
-build_one
+#CPU=armv6
+#OPTIMIZE_CFLAGS="-marm -march=$CPU"
+#PREFIX=./android/${CPU}
+#ADDITIONAL_CONFIGURE_FLAG=
+#build_one
 
 ##arm v5+vfp
 #CPU=armv5
