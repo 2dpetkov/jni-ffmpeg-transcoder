@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NDK=~/dev/android/android-ndk-r7b_;
+NDK=~/dev/android/android-ndk-r7b;
 PLATFORM=$NDK/platforms/android-8/arch-arm/;
 PREBUILT=$NDK/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86;
 
